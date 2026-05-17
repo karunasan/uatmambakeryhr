@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>แหม่มเบเกอรี่ — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700;800&family=Kanit:wght@600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+<style>
+:root{
+  --bg:#FDF8F4; --surface:#FFFFFF; --sidebar:#3D2010; --sidebar-hover:#5C3D2E;
+  --gold:#C8960C; --gold-light:#F5E6D3; --brown:#5C3D2E; --brown-light:#8B5E3C;
+  --text:#2A1A0E; --muted:#8B7355; --border:#E8D5BE; --green:#2E7D52;
+  --green-light:#E8F5EE; --red:#C0392B; --red-light:#FEE9E7; --blue:#1565C0;
+  --blue-light:#E3F0FF; --orange:#E67E22; --orange-light:#FEF5E7;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;font-family:'Sarabun',sans-serif;background:var(--bg);color:var(--text);}
+a{text-decoration:none;}
+
+/* LAYOUT */
+#layout{display:grid;grid-template-columns:220px 1fr;height:100vh;}
+#sidebar{background:var(--sidebar);display:flex;flex-direction:column;overflow:hidden;}
+#content{overflow-y:auto;background:var(--bg);}
+
+/* SIDEBAR */
+.sb-logo{padding:20px 18px;border-bottom:1px solid rgba(255,255,255,.1);}
+.sb-logo-txt{font-family:'Kanit',sans-serif;font-size:18px;font-weight:900;color:#D4A017;line-height:1.1;}
+.sb-logo-sub{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px;}
+.sb-nav{flex:1;padding:12px 0;overflow-y:auto;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 18px;cursor:pointer;font-size:14px;color:rgba(255,255,255,.7);transition:all .2s;border-left:3px solid transparent;}
+.nav-item:hover{background:var(--sidebar-hover);color:#fff;}
+.nav-item.active{background:var(--sidebar-hover);color:#D4A017;border-left-color:#D4A017;font-weight:700;}
+.nav-icon{font-size:18px;width:22px;text-align:center;flex-shrink:0;}
+.sb-footer{padding:14px 18px;border-top:1px solid rgba(255,255,255,.1);font-size:12px;color:rgba(255,255,255,.3);}
+
+/* PAGE HEADER */
+.page-header{display:flex;align-items:center;justify-content:space-between;padding:20px 28px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10;}
+.page-title{font-family:'Kanit',sans-serif;font-size:22px;font-weight:800;color:var(--brown);}
+.page-sub{font-size:13px;color:var(--muted);margin-top:2px;}
+
+/* CONTENT AREA */
+.page-body{padding:24px 28px;}
+.section{display:none;}
+.section.active{display:block;}
+
+/* CARDS & GRID */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+.stat-card{background:var(--surface);border-radius:14px;padding:20px;border:1px solid var(--border);display:flex;align-items:center;gap:16px;}
+.stat-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.stat-val{font-family:'Kanit',sans-serif;font-size:28px;font-weight:800;color:var(--brown);line-height:1;}
+.stat-label{font-size:12px;color:var(--muted);margin-top:2px;}
+
+/* TABLES */
+.table-wrap{background:var(--surface);border-radius:14px;border:1px solid var(--border);overflow:hidden;}
+.table-toolbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);}
+.table-toolbar h3{font-family:'Kanit',sans-serif;font-size:16px;font-weight:700;color:var(--brown);}
+table{width:100%;border-collapse:collapse;}
+th{background:var(--gold-light);color:var(--brown);font-weight:700;font-size:13px;padding:10px 14px;text-align:left;border-bottom:2px solid var(--border);}
+td{padding:10px 14px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#FBF4EC;}
+
+/* BADGES */
+.badge{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.badge-active{background:var(--green-light);color:var(--green);}
+.badge-inactive{background:#F5F5F5;color:#999;}
+.badge-m{background:#EDE7F6;color:#5E35B1;}
+.badge-d{background:#E3F0FF;color:var(--blue);}
+.badge-draft{background:var(--orange-light);color:var(--orange);}
+.badge-confirmed{background:var(--green-light);color:var(--green);}
+.badge-in{background:var(--green-light);color:var(--green);}
+.badge-out{background:var(--red-light);color:var(--red);}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;transition:all .2s;}
+.btn-primary{background:var(--brown);color:#fff;}
+.btn-primary:hover{background:var(--sidebar-hover);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-gold:hover{background:#A07A0A;}
+.btn-green{background:var(--green);color:#fff;}
+.btn-red{background:var(--red);color:#fff;}
+.btn-sm{padding:5px 10px;font-size:12px;}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.btn-outline:hover{border-color:var(--brown);color:var(--brown);}
+
+/* FORMS */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.form-group{display:flex;flex-direction:column;gap:6px;}
+.form-group.full{grid-column:1/-1;}
+label{font-size:13px;font-weight:700;color:var(--brown);}
+input,select,textarea{padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-family:'Sarabun',sans-serif;font-size:14px;color:var(--text);transition:border-color .2s;background:var(--surface);}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brown);}
+input[type=number]{-moz-appearance:textfield;}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;display:none;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--surface);border-radius:18px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border);}
+.modal-header h3{font-family:'Kanit',sans-serif;font-size:18px;font-weight:700;color:var(--brown);}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--muted);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.modal-close:hover{background:var(--border);}
+.modal-body{padding:24px;}
+.modal-footer{display:flex;justify-content:flex-end;gap:10px;padding:16px 24px;border-top:1px solid var(--border);}
+
+/* FACE REGISTRATION */
+#face-video-wrap{position:relative;width:100%;aspect-ratio:4/3;background:#000;border-radius:12px;overflow:hidden;}
+#face-video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);}
+#face-canvas{position:absolute;inset:0;transform:scaleX(-1);}
+.face-slots{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px;}
+.face-slot{border:2px dashed var(--border);border-radius:10px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:all .2s;font-size:12px;color:var(--muted);}
+.face-slot.done{border-color:var(--green);background:var(--green-light);color:var(--green);}
+.face-slot.active{border-color:var(--gold);background:var(--gold-light);color:var(--brown);}
+.face-slot-icon{font-size:28px;}
+
+/* PAY SLIP */
+#slip-area{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:32px;max-width:560px;}
+.slip-header{text-align:center;margin-bottom:20px;}
+.slip-title{font-family:'Kanit',sans-serif;font-size:20px;font-weight:900;color:var(--brown);}
+.slip-table{width:100%;border-collapse:collapse;font-size:13px;}
+.slip-table tr td{padding:6px 8px;border-bottom:1px solid var(--border);}
+.slip-table tr:last-child td{border-bottom:none;}
+.slip-table .label{color:var(--muted);}
+.slip-table .val{text-align:right;font-weight:600;}
+.slip-net{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding:12px 14px;background:var(--gold-light);border-radius:10px;}
+.slip-net-label{font-size:16px;font-weight:700;color:var(--brown);}
+.slip-net-val{font-family:'Kanit',sans-serif;font-size:26px;font-weight:900;color:var(--brown);}
+.slip-section-head{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding:8px 8px 4px;background:var(--bg);}
+@media print{
+  #layout{display:block;}
+  #sidebar,#content>*:not(#sec-slip){display:none!important;}
+  #sec-slip .page-header{display:none!important;}
+  #slip-area{border:none;padding:0;box-shadow:none;max-width:100%;}
+  .no-print{display:none!important;}
+}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;background:var(--brown);color:#fff;padding:12px 20px;border-radius:10px;font-size:14px;z-index:999;transform:translateY(100px);transition:transform .3s;display:flex;align-items:center;gap:8px;}
+#toast.show{transform:translateY(0);}
+#toast.error{background:var(--red);}
+
+/* MISC */
+.info-box{background:var(--blue-light);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--blue);margin-bottom:16px;}
+.warn-box{background:var(--orange-light);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--orange);margin-bottom:16px;}
+.divider{border:none;border-top:1px solid var(--border);margin:20px 0;}
+.empty-state{text-align:center;padding:48px;color:var(--muted);}
+.empty-state .empty-icon{font-size:48px;margin-bottom:12px;}
+.chip{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;background:var(--gold-light);color:var(--brown);}
+.login-wrap{position:fixed;inset:0;background:var(--sidebar);display:flex;align-items:center;justify-content:center;z-index:200;}
+.login-box{background:var(--surface);border-radius:20px;padding:40px;width:340px;text-align:center;}
+.login-logo{font-family:'Kanit',sans-serif;font-size:28px;font-weight:900;color:var(--brown);margin-bottom:8px;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="login-wrap">
+  <div class="login-box">
+    <div class="login-logo">🥐 แหม่มเบเกอรี่</div>
+    <div style="color:var(--muted);font-size:13px;margin-bottom:24px">ระบบจัดการพนักงาน — Admin</div>
+    <div class="form-group" style="margin-bottom:16px">
+      <input type="password" id="login-pw" placeholder="รหัสผ่าน Admin" style="text-align:center">
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="doLogin()">เข้าสู่ระบบ</button>
+    <div style="font-size:12px;color:var(--muted);margin-top:12px">รหัสเริ่มต้น: admin1234</div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast">✅ บันทึกสำเร็จ</div>
+
+<!-- MAIN LAYOUT -->
+<div id="layout">
+  <nav id="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-txt">🥐 แหม่มเบเกอรี่</div>
+      <div class="sb-logo-sub">HR Management System</div>
+    </div>
+    <div class="sb-nav">
+      <div class="nav-item active" onclick="showSection('dashboard')"><span class="nav-icon">📊</span>แดชบอร์ด</div>
+      <div class="nav-item" onclick="showSection('employees')"><span class="nav-icon">👥</span>จัดการพนักงาน</div>
+      <div class="nav-item" onclick="showSection('faceReg')"><span class="nav-icon">📷</span>ลงทะเบียนใบหน้า</div>
+      <div class="nav-item" onclick="showSection('attendance')"><span class="nav-icon">📋</span>รายงานการเข้างาน</div>
+      <div class="nav-item" onclick="showSection('payroll')"><span class="nav-icon">💰</span>งวดเงินเดือน</div>
+      <div class="nav-item" onclick="showSection('slip')"><span class="nav-icon">🧾</span>สลิปเงินเดือน</div>
+      <div class="nav-item" onclick="showSection('loans')"><span class="nav-icon">💳</span>บันทึกยืมเงิน</div>
+      <div class="nav-item" onclick="showSection('settings')"><span class="nav-icon">⚙️</span>ตั้งค่าระบบ</div>
+    </div>
+    <div class="sb-footer">v1.0.0 · แหม่มเบเกอรี่ HR</div>
+  </nav>
+
+  <div id="content">
+
+    <!-- ════ DASHBOARD ════ -->
+    <section class="section active" id="sec-dashboard">
+      <div class="page-header">
+        <div><div class="page-title">แดชบอร์ด</div><div class="page-sub" id="dash-date"></div></div>
+        <button class="btn btn-outline" onclick="loadAll()">🔄 รีเฟรช</button>
+      </div>
+      <div class="page-body">
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-icon" style="background:#EDE7F6">👥</div><div><div class="stat-val" id="stat-total">-</div><div class="stat-label">พนักงานทั้งหมด</div></div></div>
+          <div class="stat-card"><div class="stat-icon" style="background:var(--green-light)">✅</div><div><div class="stat-val" id="stat-in">-</div><div class="stat-label">เข้างานวันนี้</div></div></div>
+          <div class="stat-card"><div class="stat-icon" style="background:var(--orange-light)">⏳</div><div><div class="stat-val" id="stat-pending">-</div><div class="stat-label">ยังไม่ออกงาน</div></div></div>
+          <div class="stat-card"><div class="stat-icon" style="background:var(--red-light)">💳</div><div><div class="stat-val" id="stat-loans">-</div><div class="stat-label">ยอดกู้คงค้าง (฿)</div></div></div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-toolbar"><h3>การเข้างานวันนี้</h3></div>
+          <table><thead><tr><th>EmpID</th><th>ชื่อ</th><th>ประเภท</th><th>เข้า</th><th>ออก</th><th>ชั่วโมง</th><th>สถานะ</th></tr></thead>
+          <tbody id="today-table"><tr><td colspan="7" class="empty-state">กำลังโหลด...</td></tr></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════ EMPLOYEES ════ -->
+    <section class="section" id="sec-employees">
+      <div class="page-header">
+        <div><div class="page-title">จัดการพนักงาน</div><div class="page-sub">รองรับสูงสุด 20 คน (M + D)</div></div>
+        <button class="btn btn-primary" onclick="openAddEmp()">➕ เพิ่มพนักงาน</button>
+      </div>
+      <div class="page-body">
+        <div class="table-wrap">
+          <div class="table-toolbar"><h3>รายชื่อพนักงาน</h3><input type="text" placeholder="ค้นหา..." style="width:200px" oninput="filterEmp(this.value)"></div>
+          <table><thead><tr><th>EmpID</th><th>ชื่อ-นามสกุล</th><th>ชื่อเล่น</th><th>ประเภท</th><th>ตำแหน่ง</th><th>ค่าจ้าง/วัน</th><th>วันลา</th><th>ใบหน้า</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
+          <tbody id="emp-table"></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════ FACE REG ════ -->
+    <section class="section" id="sec-faceReg">
+      <div class="page-header">
+        <div><div class="page-title">ลงทะเบียนใบหน้า</div><div class="page-sub">ถ่าย 3 มุม เพื่อความแม่นยำสูงสุด</div></div>
+      </div>
+      <div class="page-body">
+        <div style="display:grid;grid-template-columns:1fr 380px;gap:24px;max-width:900px">
+          <div>
+            <div class="form-group" style="margin-bottom:16px">
+              <label>เลือกพนักงาน</label>
+              <select id="face-emp-select" onchange="selectFaceEmp()"><option value="">-- เลือกพนักงาน --</option></select>
+            </div>
+            <div id="face-video-wrap">
+              <video id="face-video" autoplay muted playsinline></video>
+              <canvas id="face-canvas"></canvas>
+              <div id="face-detect-msg" style="position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;padding:4px 10px;border-radius:6px">กดเริ่มกล้อง</div>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:12px">
+              <button class="btn btn-outline" onclick="startFaceCam()">📷 เริ่มกล้อง</button>
+              <button class="btn btn-gold" onclick="captureSlot()" id="btn-capture" disabled>📸 ถ่ายภาพ (มุมที่ <span id="capture-slot">1</span>)</button>
+            </div>
+          </div>
+          <div>
+            <div style="font-weight:700;font-size:14px;color:var(--brown);margin-bottom:12px">สถานะการลงทะเบียน</div>
+            <div class="face-slots">
+              <div class="face-slot" id="slot-1"><div class="face-slot-icon">😐</div><div>หน้าตรง</div></div>
+              <div class="face-slot" id="slot-2"><div class="face-slot-icon">😏</div><div>หันซ้าย</div></div>
+              <div class="face-slot" id="slot-3"><div class="face-slot-icon">🙄</div><div>หันขวา</div></div>
+            </div>
+            <button class="btn btn-green" style="width:100%;margin-top:16px;justify-content:center" onclick="saveFaceAll()" id="btn-save-face" disabled>💾 บันทึกใบหน้าทั้งหมด</button>
+            <div id="face-status-msg" style="margin-top:10px;font-size:13px;color:var(--muted)"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════ ATTENDANCE ════ -->
+    <section class="section" id="sec-attendance">
+      <div class="page-header">
+        <div><div class="page-title">รายงานการเข้างาน</div></div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <select id="att-month" onchange="loadAttendance()"></select>
+          <select id="att-emp" onchange="loadAttendance()"><option value="">ทุกคน</option></select>
+          <button class="btn btn-outline" onclick="exportCSV()">📤 Export CSV</button>
+        </div>
+      </div>
+      <div class="page-body">
+        <div class="stat-grid" style="grid-template-columns:repeat(3,1fr)">
+          <div class="stat-card"><div class="stat-icon" style="background:var(--green-light)">📅</div><div><div class="stat-val" id="att-days">-</div><div class="stat-label">วันทำงาน</div></div></div>
+          <div class="stat-card"><div class="stat-icon" style="background:var(--blue-light)">⏱️</div><div><div class="stat-val" id="att-hours">-</div><div class="stat-label">ชั่วโมงรวม</div></div></div>
+          <div class="stat-card"><div class="stat-icon" style="background:var(--orange-light)">⏳</div><div><div class="stat-val" id="att-open">-</div><div class="stat-label">ยังไม่ออกงาน</div></div></div>
+        </div>
+        <div class="table-wrap">
+          <table><thead><tr><th>วันที่</th><th>EmpID</th><th>ชื่อ</th><th>เวลาเข้า</th><th>เวลาออก</th><th>ชั่วโมง</th><th>สถานะ</th></tr></thead>
+          <tbody id="att-table"></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════ PAYROLL ════ -->
+    <section class="section" id="sec-payroll">
+      <div class="page-header">
+        <div><div class="page-title">งวดเงินเดือน</div></div>
+        <button class="btn btn-primary" onclick="openCreatePeriod()">➕ สร้างงวดใหม่</button>
+      </div>
+      <div class="page-body">
+        <div style="display:grid;grid-template-columns:280px 1fr;gap:20px">
+          <!-- Period List -->
+          <div>
+            <div style="font-weight:700;font-size:14px;color:var(--brown);margin-bottom:12px">งวดทั้งหมด</div>
+            <div id="period-list" style="display:flex;flex-direction:column;gap:8px"></div>
+          </div>
+          <!-- Period Detail -->
+          <div id="period-detail-wrap" style="display:none">
+            <div class="table-wrap">
+              <div class="table-toolbar">
+                <h3 id="period-detail-title">รายละเอียดงวด</h3>
+                <div style="display:flex;gap:8px">
+                  <button class="btn btn-outline btn-sm" onclick="openAddDeduction()">➕ หัก มาสาย/ขาด</button>
+                  <button class="btn btn-green btn-sm" onclick="confirmPeriod()" id="btn-confirm-period">✅ ยืนยันงวด</button>
+                </div>
+              </div>
+              <table><thead><tr><th>EmpID</th><th>ชื่อ</th><th>วันทำงาน</th><th>ฐาน</th><th>OT</th><th>อาหาร</th><th>เบี้ยขยัน</th><th>หักรวม</th><th>เงินสุทธิ</th><th>จัดการ</th></tr></thead>
+              <tbody id="payroll-table"></tbody></table>
+              <div id="payroll-summary" style="padding:16px 18px;background:var(--gold-light);border-top:1px solid var(--border);display:flex;gap:24px">
+                <div><span style="color:var(--muted);font-size:13px">รวมจ่าย: </span><span style="font-weight:800;font-size:18px;color:var(--brown)" id="sum-net">-</span></div>
+              </div>
+            </div>
+          </div>
+          <div id="period-empty" style="display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px">เลือกงวดเพื่อดูรายละเอียด</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════ SLIP ════ -->
+    <section class="section" id="sec-slip">
+      <div class="page-header">
+        <div><div class="page-title">สลิปเงินเดือน</div></div>
+        <div style="display:flex;gap:10px" class="no-print">
+          <select id="slip-period"><option value="">-- เลือกงวด --</option></select>
+          <select id="slip-emp"><option value="">-- เลือกพนักงาน --</option></select>
+          <button class="btn btn-gold" onclick="generateSlip()">👁️ ดูสลิป</button>
+          <button class="btn btn-primary" onclick="printSlip()">🖨️ พิมพ์ / PDF</button>
+        </div>
+      </div>
+      <div class="page-body">
+        <div id="slip-area" style="display:none">
+          <div class="slip-header">
+            <div style="font-size:22px">🥐</div>
+            <div class="slip-title">แหม่มเบเกอรี่</div>
+            <div style="font-size:13px;color:var(--muted)">สลิปเงินเดือน — <span id="slip-period-name"></span></div>
+          </div>
+          <table class="slip-table">
+            <tr><td class="label">รหัสพนักงาน</td><td class="val" id="sl-empid"></td></tr>
+            <tr><td class="label">ชื่อ-นามสกุล</td><td class="val" id="sl-name"></td></tr>
+            <tr><td class="label">ตำแหน่ง</td><td class="val" id="sl-pos"></td></tr>
+            <tr><td colspan="2" class="slip-section-head">รายได้</td></tr>
+            <tr><td class="label">ค่าจ้าง (<span id="sl-days"></span> วัน)</td><td class="val" id="sl-base"></td></tr>
+            <tr><td class="label">ค่าล่วงเวลา (OT)</td><td class="val" id="sl-ot"></td></tr>
+            <tr><td class="label">ค่าอาหาร</td><td class="val" id="sl-food"></td></tr>
+            <tr><td class="label">เบี้ยขยัน</td><td class="val" id="sl-diligence"></td></tr>
+            <tr id="sl-row-adv"><td class="label">เบิกล่วงหน้า</td><td class="val" id="sl-adv" style="color:var(--red)"></td></tr>
+            <tr><td colspan="2" class="slip-section-head">รายการหัก</td></tr>
+            <tr id="sl-row-late"><td class="label">หักมาสาย</td><td class="val" id="sl-late" style="color:var(--red)"></td></tr>
+            <tr id="sl-row-absent"><td class="label">หักขาดงาน</td><td class="val" id="sl-absent" style="color:var(--red)"></td></tr>
+            <tr id="sl-row-loan"><td class="label">หักเงินกู้ (คงเหลือ: <span id="sl-loan-bal"></span>)</td><td class="val" id="sl-loan" style="color:var(--red)"></td></tr>
+            <tr id="sl-row-accum"><td class="label">หักสะสม</td><td class="val" id="sl-accum" style="color:var(--red)"></td></tr>
+          </table>
+          <div class="slip-net">
+            <div class="slip-net-label">💰 เงินเดือนสุทธิ</div>
+            <div class="slip-net-val" id="sl-net"></div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:16px">เอกสารนี้ออกโดยระบบอัตโนมัติ — แหม่มเบเกอรี่ HR System</div>
+        </div>
+        <div id="slip-empty" style="text-align:center;padding:60px;color:var(--muted)">เลือกงวดและพนักงาน แล้วกด "ดูสลิป"</div>
+      </div>
+    </section>
+
+    <!-- ════ LOANS ════ -->
+    <section class="section" id="sec-loans">
+      <div class="page-header">
+        <div><div class="page-title">บันทึกยืมเงิน</div></div>
+        <button class="btn btn-primary" onclick="openAddLoan()">➕ เพิ่มรายการกู้</button>
+      </div>
+      <div class="page-body">
+        <div class="table-wrap">
+          <table><thead><tr><th>EmpID</th><th>ชื่อ</th><th>วันที่กู้</th><th>ยอดกู้</th><th>หัก/งวด</th><th>ชำระแล้ว</th><th>คงเหลือ</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
+          <tbody id="loan-table"></tbody></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════ SETTINGS ════ -->
+    <section class="section" id="sec-settings">
+      <div class="page-header">
+        <div><div class="page-title">ตั้งค่าระบบ</div></div>
+      </div>
+      <div class="page-body" style="max-width:640px">
+        <div class="table-wrap" style="padding:24px;margin-bottom:20px">
+          <h3 style="font-family:Kanit;font-size:16px;font-weight:700;color:var(--brown);margin-bottom:16px">🔗 Google Apps Script API</h3>
+          <div class="form-group" style="margin-bottom:12px">
+            <label>GAS Web App URL</label>
+            <input type="url" id="cfg-api-url" placeholder="https://script.google.com/macros/s/AKfycbzoz26kfcq-i9mPwu9avFcoua2n4CLlapECXegTB-zASfV95-S4nRvqQsqz5WXu_S88Mw/exec">
+          </div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <button class="btn btn-primary" onclick="testConnection()">🧪 ทดสอบการเชื่อมต่อ</button>
+            <button class="btn btn-gold" onclick="runSetup()">⚙️ ตั้งค่า Sheets</button>
+            <span id="conn-status" style="font-size:13px;color:var(--muted)"></span>
+          </div>
+        </div>
+
+        <div class="table-wrap" style="padding:24px;margin-bottom:20px">
+          <h3 style="font-family:Kanit;font-size:16px;font-weight:700;color:var(--brown);margin-bottom:16px">📍 ตั้งค่า GPS</h3>
+          <div class="form-grid" style="margin-bottom:12px">
+            <div class="form-group">
+              <label>Latitude (ละติจูด)</label>
+              <input type="number" id="cfg-lat" step="0.000001" placeholder="13.756300">
+            </div>
+            <div class="form-group">
+              <label>Longitude (ลองจิจูด)</label>
+              <input type="number" id="cfg-lng" step="0.000001" placeholder="100.501800">
+            </div>
+            <div class="form-group">
+              <label>รัศมีอนุญาต (เมตร)</label>
+              <input type="number" id="cfg-radius" placeholder="200">
+            </div>
+            <div class="form-group">
+              <label>เปิด/ปิด GPS Check</label>
+              <select id="cfg-gps-enabled">
+                <option value="true">เปิดใช้งาน GPS</option>
+                <option value="false">ปิดใช้งาน GPS</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn btn-outline" onclick="getMyLocation()" style="margin-bottom:12px">📍 ใช้ตำแหน่งปัจจุบัน</button>
+        </div>
+
+        <div class="table-wrap" style="padding:24px;margin-bottom:20px">
+          <h3 style="font-family:Kanit;font-size:16px;font-weight:700;color:var(--brown);margin-bottom:16px">💰 ตั้งค่าเงินเดือน</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>เวลาเริ่มงาน</label>
+              <input type="time" id="cfg-work-start" value="08:00">
+            </div>
+            <div class="form-group">
+              <label>นาทีที่ถือว่ามาสาย</label>
+              <input type="number" id="cfg-late-min" placeholder="15">
+            </div>
+            <div class="form-group">
+              <label>ค่าอาหารต่อวัน (฿)</label>
+              <input type="number" id="cfg-food" placeholder="50">
+            </div>
+            <div class="form-group">
+              <label>เบี้ยขยัน/งวด (฿)</label>
+              <input type="number" id="cfg-diligence" placeholder="500">
+            </div>
+          </div>
+        </div>
+
+        <div class="table-wrap" style="padding:24px;margin-bottom:20px">
+          <h3 style="font-family:Kanit;font-size:16px;font-weight:700;color:var(--brown);margin-bottom:16px">🔒 เปลี่ยนรหัสผ่าน Admin</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>รหัสผ่านใหม่</label>
+              <input type="password" id="cfg-new-pw">
+            </div>
+            <div class="form-group">
+              <label>ยืนยันรหัสผ่าน</label>
+              <input type="password" id="cfg-confirm-pw">
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="saveSettings()">💾 บันทึกการตั้งค่าทั้งหมด</button>
+      </div>
+    </section>
+  </div><!-- /content -->
+</div><!-- /layout -->
+
+<!-- ════ MODALS ════ -->
+
+<!-- Add/Edit Employee -->
+<div class="modal-bg" id="modal-emp">
+  <div class="modal">
+    <div class="modal-header"><h3 id="modal-emp-title">เพิ่มพนักงาน</h3><button class="modal-close" onclick="closeModal('modal-emp')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full"><label>ชื่อ-นามสกุล *</label><input type="text" id="emp-name" placeholder="ชื่อจริง นามสกุล"></div>
+        <div class="form-group"><label>ชื่อเล่น</label><input type="text" id="emp-nick"></div>
+        <div class="form-group"><label>ประเภทพนักงาน *</label>
+          <select id="emp-type"><option value="M">M — รายเดือน</option><option value="D">D — รายวัน</option></select>
+        </div>
+        <div class="form-group"><label>ตำแหน่ง</label><input type="text" id="emp-pos" placeholder="เช่น พนักงานขาย"></div>
+        <div class="form-group"><label>ค่าจ้างต่อวัน (฿) *</label><input type="number" id="emp-rate" placeholder="500"></div>
+        <div class="form-group"><label>ค่า OT/ชั่วโมง (฿)</label><input type="number" id="emp-ot" placeholder="คำนวณอัตโนมัติ"></div>
+        <div class="form-group"><label>เบอร์โทร</label><input type="tel" id="emp-phone"></div>
+        <div class="form-group"><label>วันลาคงเหลือ</label><input type="number" id="emp-vacation" value="3"></div>
+      </div>
+      <input type="hidden" id="emp-edit-id">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-emp')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveEmployee()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Create Period -->
+<div class="modal-bg" id="modal-period">
+  <div class="modal">
+    <div class="modal-header"><h3>สร้างงวดเงินเดือนใหม่</h3><button class="modal-close" onclick="closeModal('modal-period')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full"><label>ชื่องวด</label><input type="text" id="period-name" placeholder="เช่น เงินเดือน มิถุนายน 2568"></div>
+        <div class="form-group"><label>วันเริ่ม (dd/mm/bbbb)</label><input type="text" id="period-from" placeholder="01/06/2568"></div>
+        <div class="form-group"><label>วันสิ้นสุด (dd/mm/bbbb)</label><input type="text" id="period-to" placeholder="30/06/2568"></div>
+      </div>
+      <div class="info-box" style="margin-top:16px">ระบบจะคำนวณยอด Draft อัตโนมัติจากข้อมูลการเข้างาน</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-period')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="createPeriod()">✅ สร้างงวด</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Payroll Row -->
+<div class="modal-bg" id="modal-payrow">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header"><h3>แก้ไขรายการเงินเดือน</h3><button class="modal-close" onclick="closeModal('modal-payrow')">✕</button></div>
+    <div class="modal-body">
+      <div style="font-weight:700;font-size:16px;color:var(--brown);margin-bottom:16px" id="payrow-name"></div>
+      <div class="form-grid">
+        <div class="form-group"><label>เบี้ยขยัน (฿)</label><input type="number" id="pr-diligence"></div>
+        <div class="form-group"><label>เบิกล่วงหน้า (฿)</label><input type="number" id="pr-advance"></div>
+        <div class="form-group"><label>หักมาสาย (฿)</label><input type="number" id="pr-late"></div>
+        <div class="form-group"><label>หักขาดงาน (฿)</label><input type="number" id="pr-absent"></div>
+        <div class="form-group full"><label>หักสะสม (฿)</label><input type="number" id="pr-accum"></div>
+      </div>
+      <input type="hidden" id="pr-emp-id"><input type="hidden" id="pr-period-id">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-payrow')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="savePayrollRow()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Deduction -->
+<div class="modal-bg" id="modal-deduction">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header"><h3>เพิ่มรายการหัก</h3><button class="modal-close" onclick="closeModal('modal-deduction')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>พนักงาน</label><select id="ded-emp"></select></div>
+        <div class="form-group"><label>ประเภท</label>
+          <select id="ded-type"><option value="มาสาย">มาสาย</option><option value="ขาดงาน">ขาดงาน</option></select>
+        </div>
+        <div class="form-group"><label>วันที่ (dd/mm/bbbb)</label><input type="text" id="ded-date"></div>
+        <div class="form-group"><label>ยอดหัก (฿)</label><input type="number" id="ded-amount"></div>
+        <div class="form-group full"><label>รายละเอียด</label><input type="text" id="ded-detail" placeholder="เช่น มาสาย 45 นาที"></div>
+        <div class="form-group full"><label>หมายเหตุ</label><input type="text" id="ded-note"></div>
+      </div>
+      <input type="hidden" id="ded-period-id">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-deduction')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveDeduction()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Loan -->
+<div class="modal-bg" id="modal-loan">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header"><h3>บันทึกยืมเงิน</h3><button class="modal-close" onclick="closeModal('modal-loan')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full"><label>พนักงาน</label><select id="loan-emp-sel"></select></div>
+        <div class="form-group"><label>ยอดยืม (฿)</label><input type="number" id="loan-amount"></div>
+        <div class="form-group"><label>หักต่องวด (฿)</label><input type="number" id="loan-monthly"></div>
+        <div class="form-group full"><label>หมายเหตุ</label><input type="text" id="loan-note"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-loan')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveLoan()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── GLOBALS ────────────────────────────────────────────────────────────────
+var API_URL = localStorage.getItem('gasApiUrl') || '';
+var allEmployees = [], allPeriods = [], allLoans = [], todayAtt = [];
+var currentPeriodID = null;
+var faceDescriptors = [null, null, null];
+var currentFaceSlot = 1;
+var faceStream = null;
+var MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
+var faceModelsLoaded = false;
+
+var THAI_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+
+// ─── LOGIN ──────────────────────────────────────────────────────────────────
+function doLogin() {
+  var pw = document.getElementById('login-pw').value;
+  if (!API_URL) {
+    // No API yet — allow with default password to set up settings
+    if (pw === 'admin1234' || pw === localStorage.getItem('localPw')) {
+      document.getElementById('login-wrap').style.display = 'none';
+      loadAll(); return;
+    }
+    toast('รหัสผ่านไม่ถูกต้อง', true); return;
+  }
+  apiPost({action:'verifyAdmin', password:pw}).then(function(res) {
+    if (res.valid) { document.getElementById('login-wrap').style.display = 'none'; loadAll(); }
+    else toast('รหัสผ่านไม่ถูกต้อง', true);
+  }).catch(function() {
+    if (pw === 'admin1234') { document.getElementById('login-wrap').style.display = 'none'; loadAll(); }
+    else toast('ไม่สามารถเชื่อมต่อ API', true);
+  });
+}
+document.getElementById('login-pw').addEventListener('keydown', function(e){ if(e.key==='Enter') doLogin(); });
+
+// ─── NAV ────────────────────────────────────────────────────────────────────
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById('sec-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
+  event.currentTarget.classList.add('active');
+  if (id === 'attendance') loadAttendance();
+  if (id === 'slip') populateSlipDropdowns();
+  if (id === 'faceReg') initFaceReg();
+  if (id === 'payroll') renderPeriodList();
+}
+
+// ─── LOAD ALL ────────────────────────────────────────────────────────────────
+async function loadAll() {
+  var now = new Date();
+  document.getElementById('dash-date').textContent = 'วันที่ ' + now.getDate() + ' ' + THAI_MONTHS[now.getMonth()] + ' ' + (now.getFullYear()+543);
+  if (!API_URL) return;
+  try {
+    allEmployees = await apiGet('getEmployees') || [];
+    allPeriods = await apiGet('getPeriods') || [];
+    allLoans = await apiGet('getLoans') || [];
+
+    var att = await apiGet('getAttendance', {date: getTodayThai()}) || [];
+    todayAtt = att;
+
+    renderDashboard();
+    renderEmployees();
+    renderPeriodList();
+    renderLoans();
+    populateAllDropdowns();
+  } catch(e) { toast('โหลดข้อมูลล้มเหลว: '+e.message, true); }
+}
+
+function getTodayThai() {
+  var now = new Date();
+  var d = now.getDate().toString().padStart(2,'0');
+  var m = (now.getMonth()+1).toString().padStart(2,'0');
+  var y = now.getFullYear()+543;
+  return d+'/'+m+'/'+y;
+}
+
+// ─── DASHBOARD ──────────────────────────────────────────────────────────────
+function renderDashboard() {
+  var active = allEmployees.filter(function(e){ return e.status==='Active'; });
+  document.getElementById('stat-total').textContent = active.length;
+  var inNow = todayAtt.filter(function(a){ return a.checkIn && !a.checkOut; });
+  var checkedIn = todayAtt.filter(function(a){ return a.checkIn; });
+  document.getElementById('stat-in').textContent = checkedIn.length;
+  document.getElementById('stat-pending').textContent = inNow.length;
+  var totalLoan = allLoans.filter(function(l){ return l.status==='Active'; }).reduce(function(s,l){ return s+(parseFloat(l.balance)||0); },0);
+  document.getElementById('stat-loans').textContent = totalLoan.toLocaleString('th-TH');
+
+  var tbody = document.getElementById('today-table');
+  if (!todayAtt.length) { tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📋</div>ยังไม่มีการเข้างานวันนี้</div></td></tr>'; return; }
+  tbody.innerHTML = todayAtt.map(function(a) {
+    var emp = allEmployees.find(function(e){ return e.empID===a.empID; }) || {};
+    return '<tr><td><span class="chip">'+a.empID+'</span></td><td>'+a.name+'</td>'+
+      '<td><span class="badge badge-'+(emp.type||'m').toLowerCase()+'">'+( emp.type||'-' )+'</span></td>'+
+      '<td>'+a.checkIn+'</td><td>'+(a.checkOut||'—')+'</td><td>'+(a.hours||'—')+'</td>'+
+      '<td><span class="badge badge-'+(a.checkOut?'out':'in')+'">'+(a.checkOut?'ออกงาน':'ยังอยู่')+'</span></td></tr>';
+  }).join('');
+}
+
+// ─── EMPLOYEES ──────────────────────────────────────────────────────────────
+function renderEmployees(filter) {
+  var data = allEmployees;
+  if (filter) data = data.filter(function(e){ return (e.name+e.empID+e.nickname).toLowerCase().includes(filter.toLowerCase()); });
+  var tbody = document.getElementById('emp-table');
+  if (!data.length) { tbody.innerHTML = '<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">👥</div>ไม่พบพนักงาน</div></td></tr>'; return; }
+  tbody.innerHTML = data.map(function(e) {
+    return '<tr><td><span class="chip">'+e.empID+'</span></td>'+
+      '<td><strong>'+e.name+'</strong></td><td>'+e.nickname+'</td>'+
+      '<td><span class="badge badge-'+(e.type||'').toLowerCase()+'">'+e.type+'</span></td>'+
+      '<td>'+e.position+'</td>'+
+      '<td>฿'+Number(e.dailyRate).toLocaleString()+'</td>'+
+      '<td>'+e.vacationLeft+' วัน</td>'+
+      '<td>'+(e.hasFace?'<span class="badge badge-active">✅ มี</span>':'<span class="badge badge-inactive">❌ ยังไม่มี</span>')+'</td>'+
+      '<td><span class="badge badge-'+(e.status==='Active'?'active':'inactive')+'">'+(e.status==='Active'?'ทำงาน':'ลาออก')+'</span></td>'+
+      '<td><button class="btn btn-sm btn-outline" onclick="openEditEmp(\''+e.empID+'\')">✏️</button> '+
+      '<button class="btn btn-sm btn-red" onclick="deleteEmp(\''+e.empID+'\')">🗑️</button></td></tr>';
+  }).join('');
+}
+function filterEmp(v) { renderEmployees(v); }
+
+function openAddEmp() {
+  document.getElementById('modal-emp-title').textContent = 'เพิ่มพนักงาน';
+  ['name','nick','pos','rate','ot','phone'].forEach(function(f){ document.getElementById('emp-'+f).value=''; });
+  document.getElementById('emp-vacation').value = 3;
+  document.getElementById('emp-type').value = 'M';
+  document.getElementById('emp-edit-id').value = '';
+  document.getElementById('modal-emp').className = 'modal-bg open';
+}
+
+function openEditEmp(id) {
+  var emp = allEmployees.find(function(e){ return e.empID===id; });
+  if (!emp) return;
+  document.getElementById('modal-emp-title').textContent = 'แก้ไข: '+emp.empID;
+  document.getElementById('emp-name').value = emp.name;
+  document.getElementById('emp-nick').value = emp.nickname;
+  document.getElementById('emp-type').value = emp.type;
+  document.getElementById('emp-pos').value = emp.position;
+  document.getElementById('emp-rate').value = emp.dailyRate;
+  document.getElementById('emp-ot').value = emp.otRate;
+  document.getElementById('emp-phone').value = emp.phone;
+  document.getElementById('emp-vacation').value = emp.vacationLeft;
+  document.getElementById('emp-edit-id').value = id;
+  document.getElementById('modal-emp').className = 'modal-bg open';
+}
+
+async function saveEmployee() {
+  var id = document.getElementById('emp-edit-id').value;
+  var payload = {
+    name: document.getElementById('emp-name').value,
+    nickname: document.getElementById('emp-nick').value,
+    type: document.getElementById('emp-type').value,
+    position: document.getElementById('emp-pos').value,
+    dailyRate: document.getElementById('emp-rate').value,
+    otRate: document.getElementById('emp-ot').value,
+    phone: document.getElementById('emp-phone').value,
+    vacationLeft: document.getElementById('emp-vacation').value,
+    status: 'Active'
+  };
+  if (!payload.name) { toast('กรุณากรอกชื่อ', true); return; }
+  payload.action = id ? 'updateEmployee' : 'addEmployee';
+  if (id) payload.empID = id;
+  try {
+    var res = await apiPost(payload);
+    if (res.error) { toast(res.error, true); return; }
+    toast(id ? 'แก้ไขสำเร็จ' : 'เพิ่มพนักงาน '+res.empID+' สำเร็จ');
+    closeModal('modal-emp');
+    await loadAll();
+  } catch(e) { toast('เกิดข้อผิดพลาด', true); }
+}
+
+async function deleteEmp(id) {
+  if (!confirm('ต้องการปิดใช้งานพนักงาน '+id+' ใช่หรือไม่?')) return;
+  try {
+    await apiPost({action:'deleteEmployee', empID:id});
+    toast('ปิดใช้งานสำเร็จ'); await loadAll();
+  } catch(e) { toast('เกิดข้อผิดพลาด', true); }
+}
+
+// ─── FACE REGISTRATION ──────────────────────────────────────────────────────
+async function initFaceReg() {
+  var sel = document.getElementById('face-emp-select');
+  sel.innerHTML = '<option value="">-- เลือกพนักงาน --</option>';
+  allEmployees.filter(function(e){ return e.status==='Active'; }).forEach(function(e) {
+    sel.innerHTML += '<option value="'+e.empID+'">'+e.empID+' — '+e.name+'</option>';
+  });
+  if (!faceModelsLoaded && window.faceapi) {
+    try {
+      document.getElementById('face-detect-msg').textContent = 'กำลังโหลด AI Models...';
+      await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+      await faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL);
+      await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+      faceModelsLoaded = true;
+      document.getElementById('face-detect-msg').textContent = 'พร้อมสแกน';
+    } catch(e) { document.getElementById('face-detect-msg').textContent = 'โหลด Models ล้มเหลว: '+e.message; }
+  }
+}
+
+function selectFaceEmp() {
+  faceDescriptors = [null, null, null]; currentFaceSlot = 1;
+  [1,2,3].forEach(function(i) { setSlot(i, 'empty'); });
+  updateCapBtn();
+  document.getElementById('btn-save-face').disabled = true;
+}
+
+async function startFaceCam() {
+  if (faceStream) { faceStream.getTracks().forEach(function(t){ t.stop(); }); }
+  faceStream = await navigator.mediaDevices.getUserMedia({video:{width:640,height:480,facingMode:'user'}});
+  var video = document.getElementById('face-video');
+  video.srcObject = faceStream;
+  document.getElementById('btn-capture').disabled = false;
+  faceDetectLoop();
+}
+
+async function faceDetectLoop() {
+  var video = document.getElementById('face-video');
+  var canvas = document.getElementById('face-canvas');
+  canvas.width = video.videoWidth || 640; canvas.height = video.videoHeight || 480;
+  var ctx = canvas.getContext('2d'); ctx.clearRect(0,0,canvas.width,canvas.height);
+  if (!faceModelsLoaded || !faceStream) return;
+  var det = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({inputSize:320,scoreThreshold:0.5}));
+  if (det) {
+    ctx.strokeStyle='#D4A017'; ctx.lineWidth=3;
+    ctx.strokeRect(det.box.x, det.box.y, det.box.width, det.box.height);
+    document.getElementById('face-detect-msg').textContent = 'ตรวจพบใบหน้า ✅ — กด "ถ่ายภาพ"';
+  } else {
+    document.getElementById('face-detect-msg').textContent = 'กำลังมองหาใบหน้า...';
+  }
+  if (faceStream) setTimeout(faceDetectLoop, 500);
+}
+
+async function captureSlot() {
+  if (!document.getElementById('face-emp-select').value) { toast('เลือกพนักงานก่อน', true); return; }
+  var video = document.getElementById('face-video');
+  var det = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({inputSize:320,scoreThreshold:0.4})).withFaceLandmarks(true).withFaceDescriptor();
+  if (!det) { toast('ไม่พบใบหน้า กรุณาปรับตำแหน่ง', true); return; }
+  faceDescriptors[currentFaceSlot-1] = Array.from(det.descriptor);
+  setSlot(currentFaceSlot, 'done');
+  var done = faceDescriptors.filter(Boolean).length;
+  if (done < 3) { currentFaceSlot++; updateCapBtn(); }
+  else { document.getElementById('btn-save-face').disabled = false; document.getElementById('face-status-msg').textContent = '✅ ถ่ายครบ 3 มุมแล้ว กด "บันทึกใบหน้า"'; }
+}
+
+function setSlot(i, state) {
+  var el = document.getElementById('slot-'+i);
+  el.className = 'face-slot '+(state==='done'?'done':state==='active'?'active':'');
+  if (state==='done') el.innerHTML = '<div class="face-slot-icon">✅</div><div>บันทึกแล้ว</div>';
+}
+function updateCapBtn() {
+  document.getElementById('capture-slot').textContent = currentFaceSlot;
+  setSlot(currentFaceSlot, 'active');
+}
+
+async function saveFaceAll() {
+  var empID = document.getElementById('face-emp-select').value;
+  if (!empID) { toast('เลือกพนักงานก่อน', true); return; }
+  try {
+    for (var i=0; i<3; i++) {
+      if (faceDescriptors[i]) {
+        await apiPost({action:'saveFaceDescriptor', empID:empID, slot:i+1, descriptor:faceDescriptors[i]});
+      }
+    }
+    toast('บันทึกข้อมูลใบหน้าสำเร็จ'); await loadAll();
+  } catch(e) { toast('บันทึกล้มเหลว', true); }
+}
+
+// ─── ATTENDANCE ──────────────────────────────────────────────────────────────
+function populateMonthSelect() {
+  var sel = document.getElementById('att-month');
+  sel.innerHTML = '';
+  var now = new Date();
+  for (var i=0; i<12; i++) {
+    var d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    var mm = (d.getMonth()+1).toString().padStart(2,'0');
+    var yyyy = d.getFullYear()+543;
+    var val = mm+'/'+yyyy;
+    var label = THAI_MONTHS[d.getMonth()]+' '+yyyy;
+    sel.innerHTML += '<option value="'+val+'">'+(i===0?'เดือนนี้: ':'')+label+'</option>';
+  }
+}
+
+async function loadAttendance() {
+  var month = document.getElementById('att-month').value;
+  var emp = document.getElementById('att-emp').value;
+  if (!API_URL || !month) return;
+  try {
+    var params = {month:month};
+    if (emp) params.empID = emp;
+    var data = await apiGet('getAttendance', params) || [];
+    var days = data.filter(function(r){ return r.checkIn; }).length;
+    var hours = data.reduce(function(s,r){ return s+(parseFloat(r.hours)||0); },0);
+    var open = data.filter(function(r){ return r.checkIn && !r.checkOut; }).length;
+    document.getElementById('att-days').textContent = days;
+    document.getElementById('att-hours').textContent = hours.toFixed(1);
+    document.getElementById('att-open').textContent = open;
+    var tbody = document.getElementById('att-table');
+    if (!data.length) { tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📋</div>ไม่มีข้อมูล</div></td></tr>'; return; }
+    tbody.innerHTML = data.map(function(r) {
+      return '<tr><td>'+r.date+'</td><td><span class="chip">'+r.empID+'</span></td><td>'+r.name+'</td>'+
+        '<td>'+r.checkIn+'</td><td>'+(r.checkOut||'—')+'</td><td>'+(r.hours||'—')+'</td>'+
+        '<td><span class="badge badge-'+(r.checkOut?'out':'in')+'">'+(r.checkOut?'ออกงาน':'ยังอยู่')+'</span></td></tr>';
+    }).join('');
+  } catch(e) { toast('โหลดข้อมูลล้มเหลว', true); }
+}
+
+async function exportCSV() {
+  var month = document.getElementById('att-month').value;
+  var emp = document.getElementById('att-emp').value;
+  if (!API_URL) return;
+  var url = API_URL+'?action=exportCSV&month='+encodeURIComponent(month)+(emp?'&empID='+encodeURIComponent(emp):'');
+  window.open(url, '_blank');
+}
+
+// ─── PAYROLL ─────────────────────────────────────────────────────────────────
+function renderPeriodList() {
+  var el = document.getElementById('period-list');
+  if (!allPeriods.length) { el.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px">ยังไม่มีงวดเงินเดือน</div>'; return; }
+  el.innerHTML = allPeriods.map(function(p) {
+    var active = p.periodID === currentPeriodID;
+    return '<div style="background:var(--surface);border-radius:10px;padding:12px 14px;cursor:pointer;border:2px solid '+(active?'var(--brown)':'var(--border)')+';transition:all .2s" onclick="loadPeriod(\''+p.periodID+'\')">'+
+      '<div style="font-weight:700;font-size:13px;color:var(--brown)">'+p.name+'</div>'+
+      '<div style="font-size:11px;color:var(--muted);margin-top:4px">'+p.dateFrom+' — '+p.dateTo+'</div>'+
+      '<span class="badge badge-'+(p.status==='Confirmed'?'confirmed':'draft')+'" style="margin-top:6px">'+p.status+'</span>'+
+      '</div>';
+  }).join('');
+}
+
+async function loadPeriod(id) {
+  currentPeriodID = id;
+  renderPeriodList();
+  var period = allPeriods.find(function(p){ return p.periodID===id; });
+  document.getElementById('period-detail-title').textContent = period ? period.name : id;
+  document.getElementById('btn-confirm-period').disabled = period && period.status === 'Confirmed';
+  document.getElementById('period-detail-wrap').style.display = 'block';
+  document.getElementById('period-empty').style.display = 'none';
+  try {
+    var data = await apiGet('getPayroll', {periodID: id}) || [];
+    renderPayrollTable(data, period && period.status === 'Confirmed');
+  } catch(e) { toast('โหลดข้อมูล Payroll ล้มเหลว', true); }
+}
+
+function renderPayrollTable(data, confirmed) {
+  var tbody = document.getElementById('payroll-table');
+  var total = 0;
+  if (!data.length) { tbody.innerHTML = '<tr><td colspan="10"><div class="empty-state">ไม่มีข้อมูล</div></td></tr>'; return; }
+  tbody.innerHTML = data.map(function(r) {
+    var deductions = (parseFloat(r.lateDeduct)||0)+(parseFloat(r.absentDeduct)||0)+(parseFloat(r.loanDeduct)||0)+(parseFloat(r.accumDeduct)||0)+(parseFloat(r.advance)||0);
+    total += parseFloat(r.netPay)||0;
+    return '<tr>'+
+      '<td><span class="chip">'+r.empID+'</span></td>'+
+      '<td>'+r.name+'</td>'+
+      '<td>'+r.workDays+'</td>'+
+      '<td>฿'+Number(r.basePay).toLocaleString()+'</td>'+
+      '<td>฿'+Number(r.otPay||0).toLocaleString()+'</td>'+
+      '<td>฿'+Number(r.foodPay||0).toLocaleString()+'</td>'+
+      '<td>฿'+Number(r.diligence||0).toLocaleString()+'</td>'+
+      '<td style="color:var(--red)">฿'+deductions.toLocaleString()+'</td>'+
+      '<td><strong style="color:var(--brown)">฿'+Number(r.netPay).toLocaleString()+'</strong></td>'+
+      '<td>'+(confirmed?'<span class="badge badge-confirmed">✅</span>':'<button class="btn btn-sm btn-outline" onclick="openEditPayrow(\''+r.empID+'\')">✏️</button>')+'</td></tr>';
+  }).join('');
+  document.getElementById('sum-net').textContent = '฿'+total.toLocaleString('th-TH', {minimumFractionDigits:2});
+}
+
+function openCreatePeriod() {
+  var now = new Date();
+  var y = now.getFullYear()+543;
+  var m = (now.getMonth()+1).toString().padStart(2,'0');
+  var days = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+  document.getElementById('period-name').value = 'เงินเดือน '+THAI_MONTHS[now.getMonth()]+' '+y;
+  document.getElementById('period-from').value = '01/'+m+'/'+y;
+  document.getElementById('period-to').value = days+'/'+m+'/'+y;
+  document.getElementById('modal-period').className = 'modal-bg open';
+}
+
+async function createPeriod() {
+  var name = document.getElementById('period-name').value;
+  var from = document.getElementById('period-from').value;
+  var to = document.getElementById('period-to').value;
+  if (!name || !from || !to) { toast('กรุณากรอกข้อมูลให้ครบ', true); return; }
+  try {
+    var res = await apiPost({action:'createPeriod', name:name, dateFrom:from, dateTo:to});
+    if (res.error) { toast(res.error, true); return; }
+    toast('สร้างงวดสำเร็จ'); closeModal('modal-period');
+    allPeriods = await apiGet('getPeriods') || [];
+    renderPeriodList(); loadPeriod(res.periodID);
+  } catch(e) { toast('เกิดข้อผิดพลาด', true); }
+}
+
+function openEditPayrow(empID) {
+  var data = {}; // will be filled from DOM if needed
+  document.getElementById('pr-emp-id').value = empID;
+  document.getElementById('pr-period-id').value = currentPeriodID;
+  document.getElementById('payrow-name').textContent = empID;
+  ['diligence','advance','late','absent','accum'].forEach(function(f){ document.getElementById('pr-'+f).value = 0; });
+  document.getElementById('modal-payrow').className = 'modal-bg open';
+}
+
+async function savePayrollRow() {
+  var empID = document.getElementById('pr-emp-id').value;
+  var periodID = document.getElementById('pr-period-id').value;
+  try {
+    var res = await apiPost({action:'savePayrollRow', empID:empID, periodID:periodID,
+      diligence: document.getElementById('pr-diligence').value,
+      advance: document.getElementById('pr-advance').value,
+      lateDeduct: document.getElementById('pr-late').value,
+      absentDeduct: document.getElementById('pr-absent').value,
+      accumDeduct: document.getElementById('pr-accum').value
+    });
+    if (res.error) { toast(res.error, true); return; }
+    toast('บันทึกสำเร็จ — เงินสุทธิ: ฿'+Number(res.netPay).toLocaleString());
+    closeModal('modal-payrow'); loadPeriod(periodID);
+  } catch(e) { toast('เกิดข้อผิดพลาด', true); }
+}
+
+function openAddDeduction() {
+  var sel = document.getElementById('ded-emp');
+  sel.innerHTML = allEmployees.filter(function(e){ return e.status==='Active'; }).map(function(e){ return '<option value="'+e.empID+'">'+e.empID+' — '+e.name+'</option>'; }).join('');
+  document.getElementById('ded-period-id').value = currentPeriodID;
+  document.getElementById('ded-date').value = getTodayThai();
+  document.getElementById('ded-amount').value = '';
+  document.getElementById('ded-detail').value = '';
+  document.getElementById('modal-deduction').className = 'modal-bg open';
+}
+
+async function saveDeduction() {
+  var periodID = document.getElementById('ded-period-id').value;
+  try {
+    var res = await apiPost({action:'addManualDeduction', periodID:periodID,
+      empID: document.getElementById('ded-emp').value,
+      type: document.getElementById('ded-type').value,
+      date: document.getElementById('ded-date').value,
+      detail: document.getElementById('ded-detail').value,
+      amount: document.getElementById('ded-amount').value,
+      note: document.getElementById('ded-note').value
+    });
+    if (res.error) { toast(res.error, true); return; }
+    toast('บันทึกรายการหักสำเร็จ'); closeModal('modal-deduction'); loadPeriod(periodID);
+  } catch(e) { toast('เกิดข้อผิดพลาด', true); }
+}
+
+async function confirmPeriod() {
+  if (!confirm('ยืนยันงวดนี้? หลังยืนยันแล้วจะไม่สามารถแก้ไขได้')) return;
+  try {
+    var res = await apiPost({action:'confirmPayroll', periodID:currentPeriodID});
+    if (res.error) { toast(res.error, true); return; }
+    toast('ยืนยันงวดสำเร็จ — ระบบตัด Loan อัตโนมัติ');
+    allPeriods = await apiGet('getPeriods') || [];
+    allLoans = await apiGet('getLoans') || [];
+    renderPeriodList(); loadPeriod(currentPeriodID);
+  } catch(e) { toast('เกิดข้อผิดพลาด', true); }
+}
+
+// ─── SLIP ────────────────────────────────────────────────────────────────────
+function populateSlipDropdowns() {
+  var pSel = document.getElementById('slip-period');
+  pSel.innerHTML = '<option value="">-- เลือกงวด --</option>';
+  allPeriods.forEach(function(p){ pSel.innerHTML += '<option value="'+p.periodID+'">'+p.name+'</option>'; });
+  var eSel = document.getElementById('slip-emp');
+  eSel.innerHTML = '<option value="">-- เลือกพนักงาน --</option>';
+  allEmployees.filter(function(e){ return e.status==='Active'; }).forEach(function(e){ eSel.innerHTML += '<option value="'+e.empID+'">'+e.empID+' — '+e.name+'</option>'; });
+}
+
+async function generateSlip() {
+  var pid = document.getElementById('slip-period').value;
+  var eid = document.getElementById('slip-emp').value;
+  if (!pid || !eid) { toast('เลือกงวดและพนักงาน', true); return; }
+  try {
+    var data = await apiGet('getPayroll', {periodID:pid, empID:eid});
+    var r = (data||[])[0];
+    if (!r) { toast('ไม่พบข้อมูล', true); return; }
+    var emp = allEmployees.find(function(e){ return e.empID===eid; }) || {};
+    var period = allPeriods.find(function(p){ return p.periodID===pid; }) || {};
+    var activeLoan = allLoans.filter(function(l){ return l.empID===eid && l.status==='Active'; });
+    var loanBal = activeLoan.reduce(function(s,l){ return s+(parseFloat(l.balance)||0); },0);
+
+    document.getElementById('slip-period-name').textContent = period.name;
+    document.getElementById('sl-empid').textContent = r.empID;
+    document.getElementById('sl-name').textContent = r.name;
+    document.getElementById('sl-pos').textContent = emp.position || '-';
+    document.getElementById('sl-days').textContent = r.workDays;
+    document.getElementById('sl-base').textContent = '฿'+Number(r.basePay).toLocaleString();
+    document.getElementById('sl-ot').textContent = '฿'+Number(r.otPay||0).toLocaleString();
+    document.getElementById('sl-food').textContent = '฿'+Number(r.foodPay||0).toLocaleString();
+    document.getElementById('sl-diligence').textContent = '฿'+Number(r.diligence||0).toLocaleString();
+    document.getElementById('sl-adv').textContent = r.advance > 0 ? '−฿'+Number(r.advance).toLocaleString() : '฿0';
+    document.getElementById('sl-late').textContent = r.lateDeduct > 0 ? '−฿'+Number(r.lateDeduct).toLocaleString() : '฿0';
+    document.getElementById('sl-absent').textContent = r.absentDeduct > 0 ? '−฿'+Number(r.absentDeduct).toLocaleString() : '฿0';
+    document.getElementById('sl-loan').textContent = r.loanDeduct > 0 ? '−฿'+Number(r.loanDeduct).toLocaleString() : '฿0';
+    document.getElementById('sl-loan-bal').textContent = '฿'+loanBal.toLocaleString();
+    document.getElementById('sl-accum').textContent = r.accumDeduct > 0 ? '−฿'+Number(r.accumDeduct).toLocaleString() : '฿0';
+    document.getElementById('sl-net').textContent = '฿'+Number(r.netPay).toLocaleString('th-TH',{minimumFractionDigits:2});
+
+    document.getElementById('slip-area').style.display = 'block';
+    document.getElementById('slip-empty').style.display = 'none';
+  } catch(e) { toast('โหลดข้อมูลล้มเหลว', true); }
+}
+
+function printSlip() { window.print(); }
+
+// ─── LOANS ───────────────────────────────────────────────────────────────────
+function renderLoans() {
+  var tbody = document.getElementById('loan-table');
+  if (!allLoans.length) { tbody.innerHTML = '<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">💳</div>ยังไม่มีรายการยืมเงิน</div></td></tr>'; return; }
+  tbody.innerHTML = allLoans.map(function(l) {
+    var pct = l.amount > 0 ? (parseFloat(l.paid)/parseFloat(l.amount)*100).toFixed(0) : 0;
+    return '<tr>'+
+      '<td><span class="chip">'+l.empID+'</span></td>'+
+      '<td>'+l.name+'</td>'+
+      '<td>'+l.date+'</td>'+
+      '<td>฿'+Number(l.amount).toLocaleString()+'</td>'+
+      '<td>฿'+Number(l.monthlyDeduct).toLocaleString()+'/งวด</td>'+
+      '<td>฿'+Number(l.paid).toLocaleString()+' ('+pct+'%)</td>'+
+      '<td><strong style="color:var(--'+(l.balance>0?'red':'green')+')">฿'+Number(l.balance).toLocaleString()+'</strong></td>'+
+      '<td><span class="badge badge-'+(l.status==='Active'?'draft':'confirmed')+'">'+l.status+'</span></td>'+
+      '<td><button class="btn btn-sm btn-outline" onclick="editLoanMonthly(\''+l.loanID+'\')">✏️ หัก/งวด</button></td></tr>';
+  }).join('');
+}
+
+function openAddLoan() {
+  var sel = document.getElementById('loan-emp-sel');
+  sel.innerHTML = allEmployees.filter(function(e){ return e.status==='Active'; }).map(function(e){ return '<option value="'+e.empID+'">'+e.empID+' — '+e.name+'</option>'; }).join('');
+  document.getElementById('loan-amount').value = '';
+  document.getElementById('loan-monthly').value = '';
+  document.getElementById('loan-note').value = '';
+  document.getElementById('modal-loan').className = 'modal-bg open';
+}
+
+async function saveLoan() {
+  try {
+    var res = await apiPost({action:'addLoan', empID:document.getElementById('loan-emp-sel').value, amount:document.getElementById('loan-amount').value, monthlyDeduct:document.getElementById('loan-monthly').value, note:document.getElementById('loan-note').value});
+    if (res.error) { toast(res.error, true); return; }
+    toast('บันทึกสำเร็จ'); closeModal('modal-loan');
+    allLoans = await apiGet('getLoans') || []; renderLoans();
+  } catch(e) { toast('เกิดข้อผิดพลาด', true); }
+}
+
+async function editLoanMonthly(loanID) {
+  var loan = allLoans.find(function(l){ return l.loanID===loanID; });
+  var newVal = prompt('หักต่องวด (฿) สำหรับ '+loan.name+'\nปัจจุบัน: ฿'+loan.monthlyDeduct, loan.monthlyDeduct);
+  if (!newVal) return;
+  try {
+    await apiPost({action:'updateLoan', loanID:loanID, monthlyDeduct:newVal});
+    toast('แก้ไขสำเร็จ'); allLoans = await apiGet('getLoans') || []; renderLoans();
+  } catch(e) { toast('เกิดข้อผิดพลาด', true); }
+}
+
+// ─── SETTINGS ────────────────────────────────────────────────────────────────
+function loadSettings() {
+  document.getElementById('cfg-api-url').value = localStorage.getItem('gasApiUrl') || '';
+  document.getElementById('cfg-lat').value = localStorage.getItem('gpsLat') || '13.756300';
+  document.getElementById('cfg-lng').value = localStorage.getItem('gpsLng') || '100.501800';
+  document.getElementById('cfg-radius').value = localStorage.getItem('gpsRadius') || '200';
+  document.getElementById('cfg-gps-enabled').value = localStorage.getItem('gpsEnabled') || 'true';
+  document.getElementById('cfg-work-start').value = localStorage.getItem('workStart') || '08:00';
+  document.getElementById('cfg-late-min').value = localStorage.getItem('lateMin') || '15';
+  document.getElementById('cfg-food').value = localStorage.getItem('foodPerDay') || '50';
+  document.getElementById('cfg-diligence').value = localStorage.getItem('diligence') || '500';
+}
+
+async function testConnection() {
+  var url = document.getElementById('cfg-api-url').value;
+  if (!url) { toast('กรุณากรอก URL ก่อน', true); return; }
+  document.getElementById('conn-status').textContent = '🔄 กำลังทดสอบ...';
+  try {
+    var res = await fetch(url+'?action=getConfig');
+    var data = await res.json();
+    document.getElementById('conn-status').textContent = '✅ เชื่อมต่อสำเร็จ';
+  } catch(e) { document.getElementById('conn-status').textContent = '❌ ล้มเหลว: '+e.message; }
+}
+
+async function runSetup() {
+  var url = document.getElementById('cfg-api-url').value;
+  if (!url) { toast('กรุณากรอก URL ก่อน', true); return; }
+  try {
+    var res = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'setupSheets'})});
+    var data = await res.json();
+    toast(data.message || 'ตั้งค่า Sheets สำเร็จ');
+  } catch(e) { toast('เกิดข้อผิดพลาด: '+e.message, true); }
+}
+
+function getMyLocation() {
+  if (!navigator.geolocation) { toast('ไม่รองรับ GPS', true); return; }
+  navigator.geolocation.getCurrentPosition(function(pos) {
+    document.getElementById('cfg-lat').value = pos.coords.latitude.toFixed(6);
+    document.getElementById('cfg-lng').value = pos.coords.longitude.toFixed(6);
+    toast('รับตำแหน่งสำเร็จ');
+  }, function(e) { toast('ไม่สามารถรับตำแหน่ง: '+e.message, true); });
+}
+
+async function saveSettings() {
+  var newUrl = document.getElementById('cfg-api-url').value.trim();
+  localStorage.setItem('gasApiUrl', newUrl);
+  localStorage.setItem('gpsLat', document.getElementById('cfg-lat').value);
+  localStorage.setItem('gpsLng', document.getElementById('cfg-lng').value);
+  localStorage.setItem('gpsRadius', document.getElementById('cfg-radius').value);
+  localStorage.setItem('gpsEnabled', document.getElementById('cfg-gps-enabled').value);
+  localStorage.setItem('workStart', document.getElementById('cfg-work-start').value);
+  localStorage.setItem('lateMin', document.getElementById('cfg-late-min').value);
+  localStorage.setItem('foodPerDay', document.getElementById('cfg-food').value);
+  localStorage.setItem('diligence', document.getElementById('cfg-diligence').value);
+  API_URL = newUrl;
+
+  // Save to GAS if connected
+  if (API_URL) {
+    var newPw = document.getElementById('cfg-new-pw').value;
+    var confirmPw = document.getElementById('cfg-confirm-pw').value;
+    var config = {
+      GPS_LAT: document.getElementById('cfg-lat').value,
+      GPS_LNG: document.getElementById('cfg-lng').value,
+      GPS_RADIUS: document.getElementById('cfg-radius').value,
+      FOOD_PER_DAY: document.getElementById('cfg-food').value,
+      DILIGENCE_BONUS: document.getElementById('cfg-diligence').value,
+      WORK_START: document.getElementById('cfg-work-start').value,
+      LATE_AFTER_MIN: document.getElementById('cfg-late-min').value
+    };
+    if (newPw) {
+      if (newPw !== confirmPw) { toast('รหัสผ่านไม่ตรงกัน', true); return; }
+      config.ADMIN_PASSWORD = newPw;
+    }
+    try { await apiPost({action:'updateConfig', config:config}); } catch(e) {}
+  }
+  toast('บันทึกการตั้งค่าสำเร็จ');
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+function closeModal(id) { document.getElementById(id).className = 'modal-bg'; }
+
+function toast(msg, isErr) {
+  var el = document.getElementById('toast');
+  el.textContent = (isErr?'❌ ':'✅ ')+msg;
+  el.className = 'show '+(isErr?'error':'');
+  setTimeout(function(){ el.className=''; }, 3000);
+}
+
+async function apiGet(action, params) {
+  if (!API_URL) throw new Error('ไม่ได้ตั้งค่า API URL');
+  var url = API_URL+'?action='+action;
+  if (params) Object.keys(params).forEach(function(k){ url+='&'+k+'='+encodeURIComponent(params[k]); });
+  return (await fetch(url)).json();
+}
+async function apiPost(body) {
+  if (!API_URL) throw new Error('ไม่ได้ตั้งค่า API URL');
+  return (await fetch(API_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)})).json();
+}
+
+function populateAllDropdowns() {
+  var attEmp = document.getElementById('att-emp');
+  attEmp.innerHTML = '<option value="">ทุกคน</option>';
+  allEmployees.filter(function(e){ return e.status==='Active'; }).forEach(function(e){ attEmp.innerHTML += '<option value="'+e.empID+'">'+e.empID+' — '+e.name+'</option>'; });
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+window.addEventListener('load', function() {
+  loadSettings();
+  populateMonthSelect();
+  // Close modals on bg click
+  document.querySelectorAll('.modal-bg').forEach(function(bg) {
+    bg.addEventListener('click', function(e){ if(e.target===bg) bg.className='modal-bg'; });
+  });
+});
+</script>
+</body>
+</html>
