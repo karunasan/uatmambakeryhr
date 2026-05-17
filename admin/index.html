@@ -390,7 +390,7 @@ input[type=number]{-moz-appearance:textfield;}
           <h3 style="font-family:Kanit;font-size:16px;font-weight:700;color:var(--brown);margin-bottom:16px">🔗 Google Apps Script API</h3>
           <div class="form-group" style="margin-bottom:12px">
             <label>GAS Web App URL</label>
-            <input type="url" id="cfg-api-url" placeholder="https://script.google.com/macros/s/AKfycbzoz26kfcq-i9mPwu9avFcoua2n4CLlapECXegTB-zASfV95-S4nRvqQsqz5WXu_S88Mw/exec">
+            <input type="url" id="cfg-api-url" placeholder="https://script.google.com/macros/s/.../exec">
           </div>
           <div style="display:flex;gap:10px;align-items:center">
             <button class="btn btn-primary" onclick="testConnection()">🧪 ทดสอบการเชื่อมต่อ</button>
@@ -478,13 +478,13 @@ input[type=number]{-moz-appearance:textfield;}
         <div class="form-group full"><label>ชื่อ-นามสกุล *</label><input type="text" id="emp-name" placeholder="ชื่อจริง นามสกุล"></div>
         <div class="form-group"><label>ชื่อเล่น</label><input type="text" id="emp-nick"></div>
         <div class="form-group"><label>ประเภทพนักงาน *</label>
-          <select id="emp-type"><option value="M">M — รายเดือน</option><option value="D">D — รายวัน</option></select>
+          <select id="emp-type" onchange="onEmpTypeChange()"><option value="M">M — รายเดือน</option><option value="D">D — รายวัน</option></select>
         </div>
         <div class="form-group"><label>ตำแหน่ง</label><input type="text" id="emp-pos" placeholder="เช่น พนักงานขาย"></div>
-        <div class="form-group"><label>ค่าจ้างต่อวัน (฿) *</label><input type="number" id="emp-rate" placeholder="500"></div>
+        <div class="form-group"><label id="emp-rate-label">ค่าจ้างต่อเดือน (฿) *</label><input type="number" id="emp-rate" placeholder="15000"></div>
         <div class="form-group"><label>ค่า OT/ชั่วโมง (฿)</label><input type="number" id="emp-ot" placeholder="คำนวณอัตโนมัติ"></div>
         <div class="form-group"><label>เบอร์โทร</label><input type="tel" id="emp-phone"></div>
-        <div class="form-group"><label>วันลาคงเหลือ</label><input type="number" id="emp-vacation" value="3"></div>
+        <div class="form-group" id="emp-vacation-group"><label>วันลาคงเหลือ</label><input type="number" id="emp-vacation" value="3"></div>
       </div>
       <input type="hidden" id="emp-edit-id">
     </div>
@@ -697,12 +697,21 @@ function renderEmployees(filter) {
 }
 function filterEmp(v) { renderEmployees(v); }
 
+function onEmpTypeChange() {
+  var type = document.getElementById('emp-type').value;
+  var isM = type === 'M';
+  document.getElementById('emp-rate-label').textContent = isM ? 'ค่าจ้างต่อเดือน (฿) *' : 'ค่าจ้างต่อวัน (฿) *';
+  document.getElementById('emp-rate').placeholder = isM ? '15000' : '500';
+  document.getElementById('emp-vacation-group').style.display = isM ? '' : 'none';
+}
+
 function openAddEmp() {
   document.getElementById('modal-emp-title').textContent = 'เพิ่มพนักงาน';
   ['name','nick','pos','rate','ot','phone'].forEach(function(f){ document.getElementById('emp-'+f).value=''; });
   document.getElementById('emp-vacation').value = 3;
   document.getElementById('emp-type').value = 'M';
   document.getElementById('emp-edit-id').value = '';
+  onEmpTypeChange();
   document.getElementById('modal-emp').className = 'modal-bg open';
 }
 
@@ -713,6 +722,7 @@ function openEditEmp(id) {
   document.getElementById('emp-name').value = emp.name;
   document.getElementById('emp-nick').value = emp.nickname;
   document.getElementById('emp-type').value = emp.type;
+  onEmpTypeChange();
   document.getElementById('emp-pos').value = emp.position;
   document.getElementById('emp-rate').value = emp.dailyRate;
   document.getElementById('emp-ot').value = emp.otRate;
@@ -732,19 +742,20 @@ async function saveEmployee() {
     dailyRate: document.getElementById('emp-rate').value,
     otRate: document.getElementById('emp-ot').value,
     phone: document.getElementById('emp-phone').value,
-    vacationLeft: document.getElementById('emp-vacation').value,
+    vacationLeft: document.getElementById('emp-type').value === 'D' ? 0 : document.getElementById('emp-vacation').value,
     status: 'Active'
   };
-  if (!payload.name) { toast('กรุณากรอกชื่อ', true); return; }
+  if (!payload.name) { toast('กรุณากรอกชื่อ-นามสกุล', true); return; }
+  if (!payload.dailyRate) { toast('กรุณากรอกค่าจ้าง', true); return; }
   payload.action = id ? 'updateEmployee' : 'addEmployee';
   if (id) payload.empID = id;
   try {
     var res = await apiPost(payload);
-    if (res.error) { toast(res.error, true); return; }
+    if (res.error) { toast('Error: '+res.error, true); return; }
     toast(id ? 'แก้ไขสำเร็จ' : 'เพิ่มพนักงาน '+res.empID+' สำเร็จ');
     closeModal('modal-emp');
     await loadAll();
-  } catch(e) { toast('เกิดข้อผิดพลาด', true); }
+  } catch(e) { toast('บันทึกไม่ได้: '+e.message, true); }
 }
 
 async function deleteEmp(id) {
@@ -1218,7 +1229,7 @@ async function apiGet(action, params) {
 }
 async function apiPost(body) {
   if (!API_URL) throw new Error('ไม่ได้ตั้งค่า API URL');
-  return (await fetch(API_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)})).json();
+  return (await fetch(API_URL, {method:'POST', body:JSON.stringify(body)})).json();
 }
 
 function populateAllDropdowns() {
